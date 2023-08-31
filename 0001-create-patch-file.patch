@@ -1,0 +1,150 @@
+From a2248c8b670b5c7a56d1708d67031dcf7da13146 Mon Sep 17 00:00:00 2001
+From: AlexeiVartoumian <alex.vartoumian@gmail.com>
+Date: Thu, 31 Aug 2023 20:27:41 +0100
+Subject: [PATCH] create patch file
+
+---
+ __pycache__/client3.cpython-310.pyc | Bin 0 -> 1097 bytes
+ client3.py                          |  10 ++++++++--
+ client_test.py                      |  22 ++++++++++++++++++----
+ thing.text                          |  16 ++++++++++++++++
+ 4 files changed, 42 insertions(+), 6 deletions(-)
+ create mode 100644 __pycache__/client3.cpython-310.pyc
+ create mode 100644 thing.text
+
+diff --git a/__pycache__/client3.cpython-310.pyc b/__pycache__/client3.cpython-310.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b4d768c2377a27217a4152f64fe77c4e9a5ab13
+GIT binary patch
+literal 1097
+zcmYjQOK%%D5GJ`??aGhDNff0<FRXze6<Ws$iXws07aA7@dT{eBP(sCmUXJ9oS4)|s
+z+(wm8>JO2Rz4zDbu|4_LL(xM|9j<I6TyS1H9L~%)H0$dt1Xuaz-&(c_`70>zF0_%a
+zaJxT{XrgIJ<dRcK8=c8WGs$%%W6gE^8<8#D(h2eeQk@<%`vbIL1>!lK(>?Ojr*aj@
+zVhy6B^~DX~i<>|f^qid2bGq0FT;6IExP_h_c^g`AdrtdY-jN-7S9al^Zo?huz+LDL
+zc$ds6B_~hNx&jGwp*v@nwk=IxVYaVGZ}kE*C;QV64!s}m?(CE%SLLB`e)s94r;m0{
+zCSc!wS?JGyJuCj9gygudSBw(J{S3GJ8cCbXFzO~bqdrJ%ljvv@vp8do&ad@o#%7U@
+z-zWFT8K2Rh&G>+0KFRcncy5iJ<RDa83V#Tq0??qvsVXPngg0Uc6<FobLulpI*c6o)
+zb?m&!kL$#naduGXIv(31ho!FE@dd*S_j|OC2c=QI7uWI0#CWj5Ubpc?wmi^A=cQ;v
+zb-xq4itNAF&vyH799Y*^CH!*Q|Gt7fTbx3F&*YO4RNnQ!8;g;#Lsf~_7(+bn4~$hq
+z*ghJM@@@AsY<o0sKknycf&QO79KWsChT!+GhUZNUc#m5{!dS{S=muTG&#t2(4@q9F
+zAO{?pzPC_lFR_fKTjE>r0$WoUVFse9CsRUI`cgg+7vbc7Q&Nw~<kICzIB0$>Nl2tl
+zF~64~-bbjp&=1BqwKto8SvFEdm1WZhFG44^xbKAW;zR7^?tS;Mz-k-bT!K<>nl`b}
+zulJthN6u8TWidN5k~b!{EQ^DO7I5aAm#w8P;}>tfdHG{a_nSUkUtFmXWLeD%1h9@V
+z#t>?n)iFY=olLHxBpAhvp{iR5#Yp*@TTr@gHOM=gVi^toHoRmT9(#j%Gdq=krx{@c
+r?6M=Djc`0m_#!mYZ6QfJDNQMlc$7xzYMN{?K@ma3uS+|O|I69`OAHn-
+
+literal 0
+HcmV?d00001
+
+diff --git a/client3.py b/client3.py
+index 3fc09b7..b8d6158 100644
+--- a/client3.py
++++ b/client3.py
+@@ -32,17 +32,21 @@ N = 500
+ def getDataPoint(quote):
+     """ Produce all the needed values to generate a datapoint """
+     """ ------------- Update this function ------------- """
++    
+     stock = quote['stock']
+     bid_price = float(quote['top_bid']['price'])
+     ask_price = float(quote['top_ask']['price'])
+-    price = bid_price
++    price = (bid_price + ask_price)/2
+     return stock, bid_price, ask_price, price
+ 
+ 
+ def getRatio(price_a, price_b):
+     """ Get ratio of price_a and price_b """
+     """ ------------- Update this function ------------- """
+-    return 1
++    if price_b > 0 :
++        ratio =  price_a /price_b
++        return ratio
++    return None
+ 
+ 
+ # Main
+@@ -52,8 +56,10 @@ if __name__ == "__main__":
+         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+         """ ----------- Update to get the ratio --------------- """
++        prices = []
+         for quote in quotes:
+             stock, bid_price, ask_price, price = getDataPoint(quote)
++            prices.append(price)
+             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+ 
+         print("Ratio %s" % getRatio(price, price))
+diff --git a/client_test.py b/client_test.py
+index af2bf26..c65cdc9 100644
+--- a/client_test.py
++++ b/client_test.py
+@@ -1,5 +1,5 @@
+ import unittest
+-from client3 import getDataPoint
++from client3 import getDataPoint, getRatio
+ 
+ class ClientTest(unittest.TestCase):
+   def test_getDataPoint_calculatePrice(self):
+@@ -8,18 +8,32 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
+-
++    for quote in quotes:
++       self.assertEqual(getDataPoint(quote),((quote["stock"],quote['top_bid']['price'],quote['top_ask']['price'],(quote['top_bid']['price']+
++quote['top_ask']['price'])/2)))
++ 
++    
+   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+     quotes = [
+       {'top_ask': {'price': 119.2, 'size': 36}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 120.48, 'size': 109}, 'id': '0.109974697771', 'stock': 'ABC'},
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
+-
+-
++    for quote in quotes:
++      self.assertEqual(getDataPoint(quote),((quote["stock"],quote['top_bid']['price'],quote['top_ask']['price'],(quote['top_bid']['price']+
++quote['top_ask']['price'])/2))) 
+   """ ------------ Add more unit tests ------------ """
++def test_getRatio(self):
++    prices=[100,23.68,129.2,141.68,117.7,114.1,110.09,199.8,520.45,135.56,0,44.4]
++    for i in range(0,len(prices),2):
++       self.assertEqual((prices[i]/prices[i+1]) ,getRatio(prices[i],prices[i+1]))
+ 
++  
++def test_getRatio_zeroDivisionError(self):
++        self.assertEqual(None ,getRatio(121.1,0))
+ 
++def test_getRatio_negative(self):
++        self.assertEqual(None ,getRatio(121.1,-1))
+ 
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/thing.text b/thing.text
+new file mode 100644
+index 0000000..da1232e
+--- /dev/null
++++ b/thing.text
+@@ -0,0 +1,16 @@
++You’ve been asked to assist with some development to add a chart to a trader’s dashboard allowing them to better identify under/over-valued stocks.
++
++The trader would like to be able to monitor two historically correlated stocks and be able to visualise when the correlation between the two weakens (i.e. one stock moves proportionally more than the historical correlation would imply). This could indicate a potential trade strategy to simultaneously buy the relatively underperforming stock and sell the relatively outperforming stock. Assuming the two prices subsequently converge, the trade should be profitable.
++
++Most data visualisation for our traders is built on JPMorgan Chase's Perspective data visualisation software, which is now open source. If you want to explore that, a link is provided in the resources section.
++
++Before implementing this request using perspective, first, you’ll need to interface with the relevant financial data feed and make the necessary adjustments to facilitate the monitoring of potential trade opportunities.
++
++For the first task of this project you will need to accomplish the following:
++
++Set up your local dev environment by downloading the necessary files, tools and dependencies.
++Fix the broken client datafeed script in the repository by making the required adjustments to it.
++Generate a patch file of the changes you made
++(optional): Add unit tests in the test script in the repository.
++Submit your work
++Let's get to work! 
+\ No newline at end of file
+-- 
+2.38.1.windows.1
+
